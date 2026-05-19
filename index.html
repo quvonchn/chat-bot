@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Savol-javob chatbot (NLP asosida) — Tabiiy tilni qayta ishlash algoritmlari yordamida akademik savollarga javob beruvchi interaktiv tizim">
+    <title>Savol-Javob Chatbot | NLP-Based Q&A System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Chart.js vizualizatsiyalar uchun -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo" id="mainLogo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <span>NlpHamkor</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#chat" class="nav-link active">Chatbot</a>
+                <a href="#analytics" class="nav-link">Tahlil</a>
+                <a href="#sandbox" class="nav-link">Qumloq</a>
+                <a href="#database" class="nav-link">Bilimlar Bazasi</a>
+                <a href="#about" class="nav-link">Loyiha haqida</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-badge">🤖 Tabiiy Tilni Qayta Ishlash (NLP)</div>
+        <h1 class="hero-title">
+            Savol-Javob Chatboti<br>
+            <span class="gradient-text">NLP Dvigateli Asosida</span>
+        </h1>
+        <p class="hero-subtitle">
+            O'zbek tili morfologiyasiga moslangan stop-word filtri, rule-based stemming, L2-normallashgan TF-IDF va Kosinus o'xshashligi (Cosine Similarity) algoritmlari asosida ishlovchi interaktiv tizim.
+        </p>
+    </section>
+
+    <!-- Main Chat & NLP Pipeline Section -->
+    <section class="chat-pipeline-section" id="chat">
+        <div class="chat-grid">
+            
+            <!-- Chatbot interfeysi kartasi -->
+            <div class="glass-card chat-card" id="chatWindow">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="card-icon chat-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3>AI Chatbot Console</h3>
+                    </div>
+                    <div class="tts-wrapper" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                        <span>Ovozli javob:</span>
+                        <label class="switch" style="position: relative; display: inline-block; width: 34px; height: 20px; margin: 0;">
+                            <input type="checkbox" id="ttsToggle" style="opacity: 0; width: 0; height: 0;">
+                            <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.15);"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="chat-box">
+                    <!-- Xabarlar maydoni -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot-message">
+                            <div class="message-bubble">
+                                <p>Assalomu alaykum! Men TDIU axborot-ko'makchi chatbotiman. Men bilan tabiiy tilda (o'zbek tilida) muloqot qilishingiz mumkin. Universitet hayoti, qabul, o'qish jarayoni va resurslari haqida savollaringizni bering! 😊</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tezkor savollar bo'limi -->
+                    <div class="quick-questions-wrapper">
+                        <div class="quick-title">Tezkor savollar:</div>
+                        <div class="quick-questions">
+                            <button class="quick-question">Qabul qachon boshlanadi?</button>
+                            <button class="quick-question">Qanday fakultetlar bor?</button>
+                            <button class="quick-question">Yotoqxona mavjudmi?</button>
+                            <button class="quick-question">Stipendiya miqdori qancha?</button>
+                        </div>
+                    </div>
+
+                    <!-- Input yuborish formasi -->
+                    <form id="chatForm" class="chat-form" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <div class="input-wrapper" style="flex: 1;">
+                            <input type="text" id="userInput" class="chat-input" placeholder="Savolingizni bu yerga yozing..." autocomplete="off" required>
+                        </div>
+                        <button type="button" class="voice-btn" id="voiceSearchBtn" title="Ovozli yozish" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"></path>
+                            </svg>
+                        </button>
+                        <button type="submit" class="send-btn" id="sendBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- NLP Pipeline vizualizator kartasi -->
+            <div class="glass-card pipeline-card" id="pipelineCard">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="card-icon pipeline-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <h3>NLP Pipeline Visualizer</h3>
+                    </div>
+                    <button id="runDiagnosticsBtn" class="diagnostics-btn" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #c084fc; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.35rem; font-family: var(--font-body);">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <span>Diagnostika</span>
+                    </button>
+                </div>
+
+                <!-- Dastlabki kutilish holati -->
+                <div class="pipeline-steps" id="pipelineSteps">
+                    <div class="pipeline-waiting" id="pipelineWaiting">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.35">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <p>Chatbotga biror savol bering va o'zbek tili NLP pipeline bosqichlarini real vaqtda bu yerda tomosha qiling!</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Analytics Dashboard Section -->
+    <section class="analytics-section" id="analytics">
+        <div class="section-header">
+            <span class="section-badge">Dashboard</span>
+            <h2 class="section-title">NLP Analitika paneli</h2>
+            <p class="section-desc">Tizimning matematik ko'rsatkichlari, tahlil natijalari va dynamic samaradorligi</p>
+        </div>
+
+        <!-- 4ta tezkor metrikalar -->
+        <div class="metrics-summary-grid">
+            <div class="metric-card">
+                <div class="metric-icon">📁</div>
+                <div class="metric-info">
+                    <span class="metric-value" id="totalQuestions">0</span>
+                    <span class="metric-label">Bilimlar bazasi hajmi</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-info">
+                    <span class="metric-value" id="matchSuccessRate">100%</span>
+                    <span class="metric-label">Match aniqlik ko'rsatkichi</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-info">
+                    <span class="metric-value" id="avgResponseTime">0 ms</span>
+                    <span class="metric-label">NLP Hisoblash tezligi</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">👥</div>
+                <div class="metric-info">
+                    <span class="metric-value" id="satisfiedUsers">100%</span>
+                    <span class="metric-label">Qoniqish darajasi (Satisfied)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafiklar to'plami -->
+        <div class="charts-grid">
+            <!-- 1. Aniqlik darajasi (Doughnut) -->
+            <div class="glass-card chart-card">
+                <h4 class="chart-title">Savol moslik darajasi</h4>
+                <div class="chart-container">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. Kalit so'zlar chastotasi (Bar) -->
+            <div class="glass-card chart-card">
+                <h4 class="chart-title">Eng faol lemmalar (Lug'at)</h4>
+                <div class="chart-container">
+                    <canvas id="wordFreqChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Kategoriyalar taqsimoti (PolarArea) -->
+            <div class="glass-card chart-card">
+                <h4 class="chart-title">Kategoriyalar ulushi</h4>
+                <div class="chart-container">
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. So'nggi savollar ishonch darajasi (Line) -->
+            <div class="glass-card chart-card wide-chart">
+                <h4 class="chart-title">Oxshashlik ishonchliligi dinamikasi (%)</h4>
+                <div class="chart-container">
+                    <canvas id="confidenceHistoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Semantik Sandbox Section -->
+    <section class="sandbox-section" id="sandbox" style="padding: 6rem 2rem; border-top: 1px solid rgba(255, 255, 255, 0.03);">
+        <div class="section-header" style="text-align: center; margin-bottom: 4rem;">
+            <span class="section-badge" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Kalkulyator</span>
+            <h2 class="section-title" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--text-main); margin: 1rem 0 0.5rem 0; letter-spacing: -0.02em;">Semantik Tahlil Qumlog'i</h2>
+            <p class="section-desc" style="font-size: 1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto;">Ikki ixtiyoriy matnning preprocessing o'zgarishlari, TF-IDF og'irliklari va o'zaro kosinus o'xshashligini vizual taqqoslang</p>
+        </div>
+
+        <div class="glass-card" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="sandboxText1" style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #3b82f6;">📝 1-Matn (Gap)</label>
+                    <textarea id="sandboxText1" class="form-textarea" placeholder="Birinchi o'zbekcha matnni kiriting... (masalan: kontrakt to'lovlarini bo'lib to'lasa bo'ladimi?)" style="height: 100px; width: 100%; border-radius: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.75rem; color: var(--text-main); font-family: var(--font-body); resize: none;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="sandboxText2" style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #10b981;">📝 2-Matn (Gap)</label>
+                    <textarea id="sandboxText2" class="form-textarea" placeholder="Ikkinchi o'zbekcha matnni kiriting... (masalan: yillik shartnomalarni bo'lib to'lash tartibi bormi?)" style="height: 100px; width: 100%; border-radius: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.75rem; color: var(--text-main); font-family: var(--font-body); resize: none;"></textarea>
+                </div>
+            </div>
+            <button id="compareSandboxBtn" class="submit-btn" style="width: 100%; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; padding: 0.85rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s; font-family: var(--font-body); font-size: 0.95rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                Matnlarni Semantik Solishtirish ⚡
+            </button>
+            <div id="sandboxResult">
+                <!-- Natijalar shu yerda ko'rinadi -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Bilimlar bazasini tahrirlash bo'limi -->
+    <section class="kb-section" id="database">
+        <div class="section-header">
+            <span class="section-badge">Menejer</span>
+            <h2 class="section-title">Bilimlar bazasini boshqarish</h2>
+            <p class="section-desc">Yangi savollar va javoblarni kiritish orqali NLP modelini real vaqt rejimida qayta o'qiting</p>
+        </div>
+
+        <div class="kb-grid">
+            <!-- Yangi savol qo'shish formasi -->
+            <div class="glass-card kb-form-card" id="addQuestionCard">
+                <div class="card-header">
+                    <div class="card-icon chat-header-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>Yangi Savol Qo'shish</h3>
+                </div>
+
+                <form id="addQuestionForm">
+                    <div class="form-group">
+                        <label for="newQuestion">❓ Savol matni</label>
+                        <input type="text" id="newQuestion" class="form-input" placeholder="Savolni kiriting (masalan: Hemis nima?)" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newAnswer">💡 Avtomatik Javob</label>
+                        <textarea id="newAnswer" class="form-textarea" placeholder="Savolga qaytariladigan javobni kiriting..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="newCategory">📦 Kategoriya</label>
+                        <select id="newCategory" class="form-select">
+                            <option value="Umumiy">Umumiy</option>
+                            <option value="Qabul">Qabul jarayoni</option>
+                            <option value="Fakultetlar">Fakultetlar</option>
+                            <option value="Moliya">Moliya / Kontrakt</option>
+                            <option value="O'qish">O'qish / Imtihonlar</option>
+                            <option value="Resurslar">Kutubxona / Resurslar</option>
+                            <option value="Ijtimoiy">TTJ / Yotoqxona</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">NLP Modelini Qayta O'qitish ✨</button>
+                </form>
+            </div>
+
+            <!-- Interaktiv Jadval -->
+            <div class="glass-card kb-table-card" id="kbTableCard">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 1rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="card-icon kb-header-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <h3>Faol Bilimlar Bazasi</h3>
+                    </div>
+                    <div class="kb-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button onclick="exportKnowledgeBase()" class="action-btn" title="Eksport qilish (JSON)" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.35rem;">
+                            <span>Eksport</span>
+                        </button>
+                        <label class="action-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.35rem; margin: 0;">
+                            <span>Import</span>
+                            <input type="file" id="importInput" accept=".json" style="display: none;">
+                        </label>
+                        <button onclick="resetKnowledgeBase()" class="action-btn" title="Dastlabki holatga qaytarish" style="background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.35); color: #fb7185; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.35rem;">
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Savol</th>
+                                <th>Javob</th>
+                                <th>Kategoriya</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kbTableBody">
+                            <!-- JS orqali to'ldiriladi -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Qanday ishlaydi bo'limi -->
+    <section class="about-section" id="about">
+        <div class="section-header">
+            <span class="section-badge">Konsepsiya</span>
+            <h2 class="section-title">NLP Dvigateli Qanday Ishlaydi?</h2>
+        </div>
+
+        <div class="about-grid">
+            <div class="glass-card about-card">
+                <div class="about-step">1</div>
+                <div class="about-icon">🔍</div>
+                <h4>Tokenizatsiya</h4>
+                <p>Gap kichik harflarga o'tkazilib, tinish belgilaridan tozalanadi va so'z-tokenlarga ajratiladi.</p>
+            </div>
+            <div class="glass-card about-card">
+                <div class="about-step">2</div>
+                <div class="about-icon">🚫</div>
+                <h4>Stop-words Filtri</h4>
+                <p>O'zbek tiliga xos bo'lgan yordamchi to'xtash so'zlari (va, bilan, uchun, ammo) filtrlanadi.</p>
+            </div>
+            <div class="glass-card about-card">
+                <div class="about-step">3</div>
+                <div class="about-icon">✂️</div>
+                <h4>Stemming / Lemma</h4>
+                <p>Ko'plik, kelishik, egalik va yuklama qo'shimchalari o'zbek tili morfologik qoidalariga ko'ra kesiladi.</p>
+            </div>
+            <div class="glass-card about-card">
+                <div class="about-step">4</div>
+                <div class="about-icon">📊</div>
+                <h4>TF-IDF va Kosinus</h4>
+                <p>TF-IDF og'irliklar vektori hisoblanib, Kosinus o'xshashligi orqali eng yaqin savol aniqlanadi.</p>
+            </div>
+        </div>
+
+        <!-- Texnologiyalar -->
+        <div class="glass-card tech-stack">
+            <h4>Tizim Arxitekturasida Qo'llanilgan Texnologiyalar</h4>
+            <div class="tech-items">
+                <div class="tech-item">
+                    <span class="tech-logo">🌐</span>
+                    <span>HTML5 (Semantic)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-logo">🎨</span>
+                    <span>CSS3 (Glassmorphism)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-logo">⚡</span>
+                    <span>JavaScript (ES6+)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-logo">📊</span>
+                    <span>Chart.js (Dinamik)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-logo">🐍</span>
+                    <span>Python (NLP Model)</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-logo">🧠</span>
+                    <span>Scikit-Learn (TF-IDF)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <span>NlpHamkor</span>
+                </div>
+                <p>Individual Loyiha — Mavzu 46</p>
+            </div>
+            <div class="footer-info">
+                <p>Toshkent Davlat Iqtisodiyot Universiteti</p>
+                <p>© 2026 — Quvonchbek. Barcha huquqlar himoyalangan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
